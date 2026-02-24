@@ -561,26 +561,32 @@ for configuration."
   "Return non-nil if FILE extension is supported.
 
 See `ready-player-supported-audio' and `ready-player-supported-video'."
-  (or (ready-player-is-audio-p file)
-      (ready-player-is-video-p file)))
+  (when (and file
+             (file-regular-p file)
+             (file-name-extension file))
+    (or (ready-player-is-audio-p file)
+        (ready-player-is-video-p file))))
 
 (defun ready-player-is-audio-p (file)
   "Return non-nil if FILE extension is found in `ready-player-supported-audio'."
-  (seq-contains-p ready-player-supported-audio
-                  (or (file-name-extension file) "")
-                  (lambda (a b)
-                    (string-equal (downcase a) (downcase b)))))
+  (when (and file (file-name-extension file))
+    (seq-contains-p ready-player-supported-audio
+                    (file-name-extension file)
+                    (lambda (a b)
+                      (string-equal (downcase a) (downcase b))))))
 
 (defun ready-player-is-ogg123-p (file)
   "Return non-nil if FILE can be handled by ogg123 utility."
-  (equal (downcase (file-name-extension file)) "ogg"))
+  (when (and file (file-name-extension file))
+    (equal (downcase (file-name-extension file)) "ogg")))
 
 (defun ready-player-is-video-p (file)
   "Return non-nil if FILE extension is found in `ready-player-supported-video'."
-  (seq-contains-p ready-player-supported-video
-                  (file-name-extension file)
-                  (lambda (a b)
-                    (string-equal (downcase a) (downcase b)))))
+  (when (and file (file-name-extension file))
+    (seq-contains-p ready-player-supported-video
+                    (file-name-extension file)
+                    (lambda (a b)
+                      (string-equal (downcase a) (downcase b))))))
 
 (defun ready-player-file-name-handler (operation &rest args)
   "Suppress `insert-file-contents' OPERATION with ARGS.
@@ -3320,10 +3326,7 @@ Source: File list fed to the metadata indexer"
   (seq-filter
    (lambda (bookmark)
      (or (equal (bookmark-prop-get bookmark 'bookmarked-by) 'ready-player)
-         (when-let* ((filename (bookmark-prop-get bookmark 'filename)))
-           (and (file-regular-p filename)
-                (file-name-extension filename)
-                (ready-player-is-supported-media-p filename)))))
+         (ready-player-is-supported-media-p (bookmark-prop-get bookmark 'filename))))
    bookmark-alist))
 
 ;;;###autoload
