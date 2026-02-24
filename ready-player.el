@@ -3320,7 +3320,10 @@ Source: File list fed to the metadata indexer"
   (seq-filter
    (lambda (bookmark)
      (or (equal (bookmark-prop-get bookmark 'bookmarked-by) 'ready-player)
-         (ready-player-is-supported-media-p (bookmark-prop-get bookmark 'filename))))
+         (when-let* ((filename (bookmark-prop-get bookmark 'filename)))
+           (and (file-regular-p filename)
+                (file-name-extension filename)
+                (ready-player-is-supported-media-p filename)))))
    bookmark-alist))
 
 ;;;###autoload
